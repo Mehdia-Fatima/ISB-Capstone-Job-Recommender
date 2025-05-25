@@ -122,34 +122,18 @@ for key, default in {
 # --- LangFlow Chatbot Helper ---
 def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
     api_url = f"{BASE_API_URL}/api/v1/run/{FLOW_ID}"
-    # payload = {
-    #     "session_id": session_id,
-    #     "input_value": user_message,
-    #     "input_type": "chat",
-    #     "output_type": "chat",
-    #     "tweaks": tweaks or {}
-    # }
-    # payload["tweaks"].update({
-    #     "ChatInput-aAzUo": {"session_id": session_id},
-    #     # "TextInput-LnzCN": {"input_value": user_name},
-    #     "TextInput-ujdax": {"input_value": session_id},
-    #     "Memory-YVR39": {"session_id": session_id},
-    #     "ChatOutput-8QykV": {"session_id": session_id}
-    # })
-    default_tweaks = {
-        "ChatInput-aAzUo":  {"session_id": session_id},
-       # "TextInput-LnzCN": {"input_value": user_name},  # drop if unused
-        "TextInput-ujdax":  {"input_value": session_id},
-        "Memory-YVR39":     {"session_id": session_id},
-        "ChatOutput-8QykV": {"session_id": session_id},
-   }
     payload = {
-        "session_id":  session_id,
+        "session_id": session_id,
         "input_value": user_message,
-        "input_type":  "chat",
+        "input_type": "chat",
         "output_type": "chat",
-        "tweaks":      all_tweaks
-   }
+        "tweaks": {
+            "ChatInput-aAzUo": {"session_id": session_id},
+            "TextInput-ujdax": {"input_value": user_message},
+            "Memory-YVR39": {"session_id": session_id},
+            "ChatOutput-8QykV": {"session_id": session_id},
+        }
+    }
     headers = {"x-api-key": api_key} if api_key else {}
     response = requests.post(api_url, json=payload, headers=headers)
     response.raise_for_status()
@@ -428,32 +412,17 @@ elif st.session_state.page == 'chatbot':
             st.markdown(prompt)
 
         # Generate assistant reply
-        # reply = run_flow(prompt, st.session_state.session_id,
-        #                  st.session_state.user_data.get("name", ""))
-        history_str = "\n".join(
-            f"{m['role'].upper()}: {m['content']}"
-            for m in st.session_state.messages
-        )
-
-# 2) Combine everything (session tag + history + new prompt)
-        combined_input = (
-            f"Session: {st.session_state.session_id}\n"
-            f"{history_str}\n"
-            f"User: {prompt}"
-        )
         reply = run_flow(
             user_message=prompt,
             session_id=st.session_state.session_id,
-            user_name=st.session_state.user_data.get("name", ""),
-            tweaks={
-                "TextInput-ujdax": {"input_value": combined_input}
-            }
+            user_name=st.session_state.user_data.get("name", "")
         )
 
         # Show assistant reply
         with st.chat_message("assistant"):
             st.markdown(reply)
         st.session_state.messages.append({"role": "assistant", "content": reply})
+
 
         # Log assistant reply
         log_interaction(
