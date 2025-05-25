@@ -204,7 +204,7 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'main' and st.session_state.authenticated:
     st.title("🧠 AI Job Recommender")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns([1,1,1,1])
     if col1.button("Logout"):
         for k in ['authenticated','generated_otp','recommendations','user_data']:
             st.session_state[k] = False if isinstance(st.session_state[k], bool) else {}
@@ -216,8 +216,18 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
         st.session_state.page = 'chatbot'
         st.rerun()
     if col3.button("Unsupervised Recommendation"):
-        st.session_state.page = 'unsupervised'
-        st.rerun()
+        # Only allow if user_data filled
+        if st.session_state.user_data and st.session_state.user_data.get("skills"):
+            st.session_state.page = 'unsupervised'
+            st.rerun()
+        else:
+            st.warning("Please fill your profile in the form before proceeding.")
+    if col4.button("Rule-Based Recommendation"):
+        if st.session_state.user_data and st.session_state.user_data.get("skills"):
+            st.session_state.page = 'rule_based'
+            st.rerun()
+        else:
+            st.warning("Please fill your profile in the form before proceeding.")
 
     with st.form("user_form"):
         name         = st.text_input("Name", value=st.session_state.user_data.get("name",""))
@@ -225,9 +235,8 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
         location     = st.selectbox("Location (State)", indian_states)
         skills       = st.multiselect("Skills (Job Types)", available_skills)
         salary       = st.number_input("Expected Monthly Salary (INR)", min_value=0)
-        model_choice = st.selectbox("Choose Model", ["Rule-Based", "Unsupervised"])
         top_n        = st.slider("Number of Recommendations", 1, 20, 3)
-        submitted    = st.form_submit_button("Get Recommendations")
+        submitted    = st.form_submit_button("Save Profile")
 
     if submitted:
         if not name.strip():
@@ -245,20 +254,39 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
                 "session_id": str(uuid.uuid4()),
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
-            if model_choice == "Rule-Based":
-                st.session_state.recommendations = recommend_jobs(
-                    user_name=name,
-                    user_age=age,
-                    user_location=location,
-                    user_skills=st.session_state.user_data["skills"],
-                    expected_salary=salary,
-                    top_n=top_n
-                )
-            else:
-                st.warning("Please use the 'Unsupervised Recommendation' button above.")
+            st.success("Profile saved! Now you can proceed to recommendations.")
 
-    # Display rule-based results
-    recs = st.session_state.recommendations
+elif st.session_state.page == 'rule_based' and st.session_state.authenticated:
+    st.title("📋 Rule-Based Job Recommendation")
+
+    # Sidebar for worker profile
+    st.sidebar.header("Worker Profile")
+    w_nm = st.sidebar.text_input("Name", st.session_state.user_data.get("name", "John Doe"))
+    w_city = st.sidebar.text_input("City", st.session_state.user_data.get("location", "Mumbai"))
+    w_skill = st.sidebar.text_input("Skills (comma-separated)", st.session_state.user_data.get("skills", "Plumber"))
+    w_sal = st.sidebar.number_input("Monthly Wage (₹)", 0, value=int(st.session_state.user_data.get("salary", 30000)))
+    top_n = st.sidebar.slider("Top N", 1, 20, st.session_state.user_data.get("top_n", 5))
+
+    if st.sidebar.button("Run Rule-Based Recommendation"):
+        # Prepare skills list
+        skills_list = [s.strip() for s in w_skill.split(",") if s.strip()]
+        if not w_nm.strip():
+            st.sidebar.error("Please enter your name.")
+        elif not skills_list:
+            st.sidebar.error("Please enter at least one skill.")
+        else:
+            recs = recommend_jobs(
+                user_name=w_nm,
+                user_age=st.session_state.user_data.get("age", 30),  # or add age input if needed
+                user_location=w_city,
+                user_skills=", ".join(skills_list),
+                expected_salary=w_sal,
+                top_n=top_n
+            )
+            st.session_state.recommendations = recs
+
+    # Display recommendations if available
+    recs = st.session_state.get('recommendations')
     if recs is not None:
         if not recs.empty:
             for idx, row in recs.iterrows():
@@ -266,10 +294,15 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
                     st.write(f"**Job type:** {row['Job type']}")
                     st.write(f"**State:** {row['State']}")
                     st.write(f"**Match score:** {row['match_score']}")
-                    if st.button(f"Interested in {row['Company']}", key=f"int_{idx}"):
+                    if st.button(f"Interested in {row['Company']}", key=f"int_rule_{idx}"):
                         st.success("Your interest has been logged!")
         else:
             st.warning("No jobs found matching your profile.")
+
+    if st.button("⬅️ Back to Main"):
+        st.session_state.page = 'main'
+        st.rerun()
+
 
 # --- PAGE: CHATBOT ---
 elif st.session_state.page == 'chatbot':
