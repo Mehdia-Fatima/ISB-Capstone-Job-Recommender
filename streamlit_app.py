@@ -118,7 +118,8 @@ for key, default in {
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
-
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
 # --- LangFlow Chatbot Helper ---
 def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
     api_url = f"{BASE_API_URL}/api/v1/run/{FLOW_ID}"
@@ -390,6 +391,8 @@ elif st.session_state.page == 'chatbot':
     if st.button("🔙 Back to Recommender"):
         st.session_state.page = 'main'
         st.rerun()
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
     # Display past messages
     for msg in st.session_state.messages:
@@ -399,6 +402,9 @@ elif st.session_state.page == 'chatbot':
     # Get new user message
     prompt = st.chat_input("Type your message…")
     if prompt:
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
         # Log user input
         log_interaction(
             user_id=st.session_state.session_id,
