@@ -498,17 +498,33 @@ elif st.session_state.page == 'admin_view' and st.session_state.authenticated:
             st.warning("No interaction data found.")
         
     elif action == "Append to jobs.csv":
-        new_data = st.text_area("Paste new job data (CSV format)")
-        if st.button("Append Job"):
-            if new_data:
-                try:
-                    from io import StringIO
-                    new_df   = pd.read_csv(StringIO(new_data))
-                    existing = pd.read_csv("jobs.csv")
+        st.subheader("📥 Download jobs.csv Template (Headers Only)")
+        if os.path.exists("jobs.csv"):
+            try:
+                # Read only headers, no rows
+                df = pd.read_csv("jobs.csv", nrows=0)
+                csv_buffer = df.to_csv(index=False)
+                st.download_button(
+                    label="Download jobs_template.csv",
+                    data=csv_buffer,
+                    file_name="jobs_template.csv",
+                    mime="text/csv"
+                )
+            except Exception as e:
+                st.error(f"Error preparing template: {e}")
+        else:
+            st.warning("jobs.csv not found. Cannot create template.")
+        
+        st.subheader("⬆️ Upload new jobs CSV to append")
+        uploaded_file = st.file_uploader("Upload CSV file with new jobs", type=["csv"])
+        if uploaded_file is not None:
+            try:
+                new_df = pd.read_csv(uploaded_file)
+                if st.button("Append Job(s)"):
+                    existing = pd.read_csv("jobs.csv") if os.path.exists("jobs.csv") else pd.DataFrame()
                     combined = pd.concat([existing, new_df], ignore_index=True)
                     combined.to_csv("jobs.csv", index=False)
-                    st.success("New job(s) added successfully.")
-                except Exception as e:
-                    st.error(f"Error: {e}")
-            else:
-                st.warning("Please enter job data first.")
+                    st.success(f"Appended {len(new_df)} job(s) successfully.")
+            except Exception as e:
+                st.error(f"Error reading uploaded file: {e}")
+    
