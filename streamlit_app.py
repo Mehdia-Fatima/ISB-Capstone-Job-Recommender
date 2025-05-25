@@ -299,14 +299,14 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
     if col1.button("Unsupervised Recommendation"):
         if st.session_state.user_data and st.session_state.user_data.get("skills"):
             st.session_state.page = 'unsupervised'
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.warning("Please fill your profile in the form before proceeding.")
 
     if col2.button("Rule-Based Recommendation"):
         if st.session_state.user_data and st.session_state.user_data.get("skills"):
             st.session_state.page = 'rule_based'
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.warning("Please fill your profile in the form before proceeding.")
 
