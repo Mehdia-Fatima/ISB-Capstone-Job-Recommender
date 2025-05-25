@@ -243,7 +243,7 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
     st.title("🧠 AI Job Recommender")
 
     # Top bar: Logout on left, Chatbot Help on right
-    col_left, col_spacer, col_right = st.columns([1, 8, 1])
+    col_left, col_spacer, col_right = st.columns([1, 3, 1])
     with col_left:
         if st.button("Logout"):
             log_interaction(
