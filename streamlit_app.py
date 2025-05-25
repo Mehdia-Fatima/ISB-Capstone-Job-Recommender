@@ -421,7 +421,8 @@ elif st.session_state.page == 'unsupervised':
  
     st.title("🤖 Unsupervised Job Recommendation")
     if st.button("🔙 Back"):
-        st.session_state.page = 'main'; st.rerun()
+        st.session_state.page = 'main' 
+        st.rerun()
 
     # Sidebar for worker profile
     st.sidebar.header("Worker Profile")
@@ -431,77 +432,86 @@ elif st.session_state.page == 'unsupervised':
     w_sal = st.sidebar.number_input("Monthly Wage (₹)", 0, value=int(st.session_state.user_data.get("salary", 30000)))
     top_n = st.sidebar.slider("Top N", 1, 20, st.session_state.user_data.get("top_n", 5))
     run_btn = st.sidebar.button("Run Unsupervised")
- 
-    if run_btn:
-        df_uns = jobs_df.copy()
-        df_uns['Avg_salary'] = (df_uns['Min salary'] + df_uns['Max salary']) / 2
-        mean_sal = df_uns.loc[df_uns['Avg_salary'] != 0, 'Avg_salary'].mean()
-        df_uns['Avg_salary'].replace(0, mean_sal, inplace=True)
-        df_uns['job_text'] = df_uns['Job type'] + " role in " + df_uns['State'] + ". Avg ₹" + df_uns['Avg_salary'].astype(int).astype(str)
- 
-        mdl = init_model()
-        emb = mdl.encode(df_uns['job_text'].tolist(), show_progress_bar=False)
-        scaler = MinMaxScaler().fit(emb)
-        emb_s = scaler.transform(emb)
- 
-        # Load or fit PCA
-        if PCA_MODEL_PATH.exists():
-            with open(PCA_MODEL_PATH, 'rb') as f:
-                pca = pickle.load(f)
-        else:
-            pca = PCA(n_components=PCA_COMPONENTS, random_state=42)
-            pca.fit(emb_s)
-            with open(PCA_MODEL_PATH, 'wb') as f:
-                pickle.dump(pca, f)
- 
-        job_pca = pca.transform(emb_s)
- 
-        # Load or fit clustering model
-        if CLUSTER_MODEL_PATH.exists():
-            with open(CLUSTER_MODEL_PATH, 'rb') as f:
-                clustering_model = pickle.load(f)
-                labels = clustering_model.labels_ if hasattr(clustering_model, "labels_") else clustering_model.predict(job_pca)
-                algo_name = type(clustering_model).__name__
-        else:
-            algo_name, labels = run_tuned_clustering(job_pca)
-            clustering_model = tuned_algorithms[algo_name]
-            clustering_model.fit(job_pca)
-            with open(CLUSTER_MODEL_PATH, 'wb') as f:
-                pickle.dump(clustering_model, f)
- 
-        df_uns['cluster'] = labels
-        st.success(f"Best algorithm: {algo_name}")
- 
-        skill_texts = [f"{sk.strip()} seeking role in {w_city}" for sk in w_skill.split(',')]
-        skill_emb = mdl.encode(skill_texts, show_progress_bar=False)
-        emb_w = scaler.transform(skill_emb)
-        w_pca = pca.transform(emb_w).mean(axis=0).reshape(1, -1)
-        dists = np.linalg.norm(job_pca - w_pca, axis=1)
-        worker_cl = int(df_uns.loc[dists.argmin(), 'cluster'])
-        st.write(f"Worker assigned to cluster **{worker_cl}**")
-        worker_emb = skill_emb.mean(axis=0).reshape(1, -1)
-        sims = cosine_similarity(worker_emb, emb).flatten()
-        df_uns['sim'] = sims
-        subset = df_uns[df_uns['cluster'] == worker_cl]
-        top_jobs = subset.nlargest(top_n, 'sim')
 
-        # Initialize session state to track interests if not present
-        if "interested_unsup" not in st.session_state:
-            st.session_state.interested_unsup = set()
+        # --- Session State Setup ---
+    if "interested_unsup" not in st.session_state:
+        st.session_state.interested_unsup = set()
+    if "unsup_top_jobs" not in st.session_state:
+        st.session_state.unsup_top_jobs = []
+    if "run_unsup_done" not in st.session_state:
+        st.session_state.run_unsup_done = False
+ 
+    # --- Run the Model ---
+    if run_btn or st.session_state.run_unsup_done:
+        if run_btn:
+            st.session_state.run_unsup_done = True  # Mark the logic as completed once
 
-        st.subheader(f"Top {top_n} jobs in cluster {worker_cl}")
-        for idx, row in top_jobs.iterrows():
+            df_uns = jobs_df.copy()
+            df_uns['Avg_salary'] = (df_uns['Min salary'] + df_uns['Max salary']) / 2
+            mean_sal = df_uns.loc[df_uns['Avg_salary'] != 0, 'Avg_salary'].mean()
+            df_uns['Avg_salary'].replace(0, mean_sal, inplace=True)
+            df_uns['job_text'] = df_uns['Job type'] + " role in " + df_uns['State'] + ". Avg ₹" + df_uns['Avg_salary'].astype(int).astype(str)
+
+            mdl = init_model()
+            emb = mdl.encode(df_uns['job_text'].tolist(), show_progress_bar=False)
+            scaler = MinMaxScaler().fit(emb)
+            emb_s = scaler.transform(emb)
+
+            if PCA_MODEL_PATH.exists():
+                with open(PCA_MODEL_PATH, 'rb') as f:
+                    pca = pickle.load(f)
+            else:
+                pca = PCA(n_components=PCA_COMPONENTS, random_state=42)
+                pca.fit(emb_s)
+                with open(PCA_MODEL_PATH, 'wb') as f:
+                    pickle.dump(pca, f)
+
+            job_pca = pca.transform(emb_s)
+
+            if CLUSTER_MODEL_PATH.exists():
+                with open(CLUSTER_MODEL_PATH, 'rb') as f:
+                    clustering_model = pickle.load(f)
+                    labels = clustering_model.labels_ if hasattr(clustering_model, "labels_") else clustering_model.predict(job_pca)
+                    algo_name = type(clustering_model).__name__
+            else:
+                algo_name, labels = run_tuned_clustering(job_pca)
+                clustering_model = tuned_algorithms[algo_name]
+                clustering_model.fit(job_pca)
+                with open(CLUSTER_MODEL_PATH, 'wb') as f:
+                    pickle.dump(clustering_model, f)
+
+            df_uns['cluster'] = labels
+            st.success(f"Best algorithm: {algo_name}")
+
+            skill_texts = [f"{sk.strip()} seeking role in {w_city}" for sk in w_skill.split(',')]
+            skill_emb = mdl.encode(skill_texts, show_progress_bar=False)
+            emb_w = scaler.transform(skill_emb)
+            w_pca = pca.transform(emb_w).mean(axis=0).reshape(1, -1)
+            dists = np.linalg.norm(job_pca - w_pca, axis=1)
+            worker_cl = int(df_uns.loc[dists.argmin(), 'cluster'])
+            st.write(f"Worker assigned to cluster **{worker_cl}**")
+            worker_emb = skill_emb.mean(axis=0).reshape(1, -1)
+            sims = cosine_similarity(worker_emb, emb).flatten()
+            df_uns['sim'] = sims
+            subset = df_uns[df_uns['cluster'] == worker_cl]
+            top_jobs = subset.nlargest(top_n, 'sim')
+
+            st.session_state.unsup_top_jobs = top_jobs.to_dict('records')
+            st.session_state.worker_cluster = worker_cl
+
+        # --- Display Results ---
+        st.subheader(f"Top {top_n} jobs in cluster {st.session_state.worker_cluster}")
+        for idx, row in enumerate(st.session_state.unsup_top_jobs):
             with st.expander(f"📌 {row['Company']}"):
                 st.write(f"**Job type:** {row['Job type']}")
                 st.write(f"**State:** {row['State']}")
                 st.write(f"**Similarity score:** {row['sim']:.2f}")
-                
+
                 job_key = f"{row['Company']}_{row['Job type']}_{row['State']}"
-    
+
                 if job_key not in st.session_state.interested_unsup:
                     if st.button(f"Interested in {row['Company']}", key=f"int_unsup_{idx}"):
                         st.session_state.interested_unsup.add(job_key)
-                        st.success("Your interest has been logged!")
                         log_interaction(
                             user_id=st.session_state.session_id,
                             action="Job Interest Clicked (Unsupervised)",
@@ -512,6 +522,8 @@ elif st.session_state.page == 'unsupervised':
                                 "similarity_score": row["sim"]
                             }
                         )
+                        st.success("Your interest has been logged!")
+                        st.rerun()  # force re-render to show updated interest
                 else:
                     st.info("✅ Interest already logged.")
 
