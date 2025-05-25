@@ -485,11 +485,18 @@ elif st.session_state.page == 'admin_view' and st.session_state.authenticated:
             st.error(f"Failed to load dashboard: {e}")
           
     elif action == "Download Interaction Data":
+        st.subheader("📄 Download Interaction Logs")
         if os.path.exists(INTERACTION_LOG):
-            df_log = pd.read_csv(INTERACTION_LOG)
-            st.download_button("Download CSV", df_log.to_csv(index=False), "interactions.csv", "text/csv")
+            with open(INTERACTION_LOG, 'rb') as f:
+                st.download_button(
+                    label="📥 Download user_interactions.csv",
+                    data=f,
+                    file_name="user_interactions.csv",
+                    mime="text/csv"
+                )
         else:
             st.warning("No interaction data found.")
+        
     elif action == "Append to jobs.csv":
         new_data = st.text_area("Paste new job data (CSV format)")
         if st.button("Append Job"):
