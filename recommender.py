@@ -11,7 +11,7 @@ from geopy.exc import GeocoderTimedOut
 from functools import lru_cache
 
 # Load jobs data
-jobs_df = pd.read_csv("data/jobs.csv")
+jobs_df = pd.read_csv("jobs.csv")
 jobs_df['avg_salary'] = (jobs_df['Min salary'] + jobs_df['Max salary']) / 2
 
 # Encode job skills
