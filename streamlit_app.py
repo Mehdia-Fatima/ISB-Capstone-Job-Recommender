@@ -242,22 +242,25 @@ if st.session_state.page == 'login':
 elif st.session_state.page == 'main' and st.session_state.authenticated:
     st.title("🧠 AI Job Recommender")
 
-    col1, col2, col3, col4 = st.columns([1,1,1,1])
-    if col1.button("Logout"):
-        log_interaction(
-        user_id=st.session_state.session_id if 'session_id' in st.session_state else 'unknown',
-        action="Logout",
-        details={}
-        )
-        for k in ['authenticated','generated_otp','recommendations','user_data']:
-            st.session_state[k] = False if isinstance(st.session_state[k], bool) else {}
-        st.session_state['messages']   = []
-        st.session_state['session_id'] = str(uuid.uuid4())
-        st.session_state.page = 'login'
-        st.rerun()
-    if col2.button("Chatbot Help"):
-        st.session_state.page = 'chatbot'
-        st.rerun()
+    # Top bar: Logout on left, Chatbot Help on right
+    col_left, col_spacer, col_right = st.columns([1, 8, 1])
+    with col_left:
+        if st.button("Logout"):
+            log_interaction(
+                user_id=st.session_state.session_id if 'session_id' in st.session_state else 'unknown',
+                action="Logout",
+                details={}
+            )
+            for k in ['authenticated', 'generated_otp', 'recommendations', 'user_data']:
+                st.session_state[k] = False if isinstance(st.session_state[k], bool) else {}
+            st.session_state['messages'] = []
+            st.session_state['session_id'] = str(uuid.uuid4())
+            st.session_state.page = 'login'
+            st.rerun()
+    with col_right:
+        if st.button("Chatbot Help"):
+            st.session_state.page = 'chatbot'
+            st.rerun()
 
     with st.form("user_form"):
         name         = st.text_input("Name", value=st.session_state.user_data.get("name",""))
