@@ -265,8 +265,8 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
     with st.form("user_form"):
         name         = st.text_input("Name", value=st.session_state.user_data.get("name",""))
         age          = st.number_input("Age", 18, 90, 30)
-        location     = st.selectbox("Location (State)", indian_states)
-        skills       = st.multiselect("Skills (Job Types)", available_skills)
+        location     = st.selectbox("Location (State)", indian_states, index=indian_states.index(st.session_state.user_data.get("location", indian_states[0])))
+        skills       = st.multiselect("Skills (Job Types)", available_skills, default=st.session_state.user_data.get("skills", "").split(", ") if st.session_state.user_data.get("skills") else [])
         salary       = st.number_input("Expected Monthly Salary (INR)", min_value=0)
         top_n        = st.slider("Number of Recommendations", 1, 20, 3)
         submitted    = st.form_submit_button("Save Profile")
@@ -361,26 +361,21 @@ elif st.session_state.page == 'rule_based' and st.session_state.authenticated:
 
     # Display recommendations if available
     recs = st.session_state.get('recommendations')
-    if recs is not None:
-        if not recs.empty:
-            for idx, row in recs.iterrows():
-                with st.expander(f"📌 {row['Company']}"):
-                    st.write(f"**Job type:** {row['Job type']}")
-                    st.write(f"**State:** {row['State']}")
-                    st.write(f"**Match score:** {row['match_score']}")
-                    if st.button(f"Interested in {row['Company']}", key=f"int_rule_{idx}"):
-                        st.success("Your interest has been logged!")
-                        log_interaction(
-                            user_id=st.session_state.session_id,
-                            action="Job Interest Clicked",
-                            details={"company": row["Company"], "job_type": row["Job type"], "state": row["State"]}
-                        )
-        else:
-            st.warning("No jobs found matching your profile.")
-
-    if st.button("⬅️ Back to Main"):
-        st.session_state.page = 'main'
-        st.rerun()
+    if isinstance(recs, pd.DataFrame) and not recs.empty:
+        for idx, row in recs.iterrows():
+            with st.expander(f"📌 {row['Company']}"):
+                st.write(f"**Job type:** {row['Job type']}")
+                st.write(f"**State:** {row['State']}")
+                st.write(f"**Match score:** {row['match_score']}")
+                if st.button(f"Interested in {row['Company']}", key=f"int_rule_{idx}"):
+                    st.success("Your interest has been logged!")
+                    log_interaction(
+                        user_id=st.session_state.session_id,
+                        action="Job Interest Clicked",
+                        details={"company": row["Company"], "job_type": row["Job type"], "state": row["State"]}
+                    )
+    elif recs is not None:
+        st.warning("No jobs found matching your profile.")
 
 
 # --- PAGE: CHATBOT ---
