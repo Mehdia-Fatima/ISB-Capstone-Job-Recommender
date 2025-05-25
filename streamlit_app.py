@@ -416,12 +416,23 @@ elif st.session_state.page == 'chatbot':
         # Generate assistant reply
         # reply = run_flow(prompt, st.session_state.session_id,
         #                  st.session_state.user_data.get("name", ""))
+        history_str = "\n".join(
+            f"{m['role'].upper()}: {m['content']}"
+            for m in st.session_state.messages
+        )
+
+# 2) Combine everything (session tag + history + new prompt)
+        combined_input = (
+            f"Session: {st.session_state.session_id}\n"
+            f"{history_str}\n"
+            f"User: {prompt}"
+        )
         reply = run_flow(
             user_message=prompt,
             session_id=st.session_state.session_id,
             user_name=st.session_state.user_data.get("name", ""),
             tweaks={
-                "ChatHistory-XYZ123": {"input_value": history_str}
+                "TextInput-ujdax": {"input_value": combined_input}
             }
         )
 
