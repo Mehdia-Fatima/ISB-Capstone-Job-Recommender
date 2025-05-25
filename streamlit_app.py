@@ -38,7 +38,7 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 # --- Constants ---
 INTERACTION_LOG   = "/tmp/user_interactions.csv"
 BASE_API_URL      = "http://52.205.254.228:7860"
-FLOW_ID           = "6fdd59ed-0109-491b-8576-3bf4932add58"
+FLOW_ID           = "8c7a4a06-925e-4287-9e0d-734cbba14577"
 GEOCODE_API_KEY   = "e16212d2c51a4da288bf22c3dced407d"
 CACHE_FILE        = Path("location_cache.csv")
 PCA_COMPONENTS    = 50
@@ -129,10 +129,10 @@ def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
         "input_type": "chat",
         "output_type": "chat",
         "tweaks": {
-            "ChatInput-aAzUo": {"session_id": session_id},
-            "TextInput-ujdax": {"input_value": user_message},
-            "Memory-YVR39": {"session_id": session_id},
-            "ChatOutput-8QykV": {"session_id": session_id},
+            "ChatInput-U7qKi": {"session_id": session_id},
+            "TextInput-lziMj": {"input_value": user_message},
+            "Memory-UG1vt": {"session_id": session_id},
+            "ChatOutput-8D91u": {"session_id": session_id},
         }
     }
     headers = {"x-api-key": api_key} if api_key else {}
