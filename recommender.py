@@ -2,6 +2,7 @@
 
 import pandas as pd
 import numpy as np
+import json
 from sklearn.preprocessing import MinMaxScaler
 from sentence_transformers import SentenceTransformer, util
 from sklearn.metrics.pairwise import cosine_similarity
@@ -22,28 +23,15 @@ job_embeddings = model.encode(jobs_df['Job type'].tolist(), convert_to_tensor=Tr
 salary_scaler = MinMaxScaler()
 jobs_df['salary_scaled'] = salary_scaler.fit_transform(jobs_df[['avg_salary']])
 
-# Location
-geolocator = Nominatim(user_agent="job_recommender_app")
+# Load static coordinates for states
+with open("state_coords.json", "r") as f:
+    STATE_COORDS = json.load(f)
 
-@lru_cache(maxsize=None)
-def get_coordinates(location):
-    try:
-        location_info = geolocator.geocode(location)
-        if location_info:
-            return location_info.latitude, location_info.longitude
-        else:
-            return None
-    except GeocoderTimedOut:
-        return get_coordinates(location)
-        
-# Precompute coordinates for unique locations
-location_coords = {}
+# Convert all values to tuple
+STATE_COORDS = {k: tuple(v) for k, v in STATE_COORDS.items()}
 
 def get_location_coords(location):
-    if location not in location_coords:
-        coords = get_coordinates(location)
-        location_coords[location] = coords
-    return location_coords[location]
+    return STATE_COORDS.get(location)
 
 def calculate_location_proximity(emp_location, job_location):
     emp_coords = get_location_coords(emp_location)
