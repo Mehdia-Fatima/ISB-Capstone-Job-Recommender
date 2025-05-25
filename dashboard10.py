@@ -24,7 +24,7 @@ region_map = {
 }
 
 # Load datasets
-job_file = 'Data_Innodatatics1 - Data_Innodatatics1.csv'
+job_file = 'jobs.csv'
 worker_file = 'daily_wage_workers_5000_enhanced (1).csv'
 
 df = pd.read_csv(job_file)
