@@ -258,19 +258,6 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
     if col2.button("Chatbot Help"):
         st.session_state.page = 'chatbot'
         st.rerun()
-    if col3.button("Unsupervised Recommendation"):
-        # Only allow if user_data filled
-        if st.session_state.user_data and st.session_state.user_data.get("skills"):
-            st.session_state.page = 'unsupervised'
-            st.rerun()
-        else:
-            st.warning("Please fill your profile in the form before proceeding.")
-    if col4.button("Rule-Based Recommendation"):
-        if st.session_state.user_data and st.session_state.user_data.get("skills"):
-            st.session_state.page = 'rule_based'
-            st.rerun()
-        else:
-            st.warning("Please fill your profile in the form before proceeding.")
 
     with st.form("user_form"):
         name         = st.text_input("Name", value=st.session_state.user_data.get("name",""))
@@ -304,6 +291,21 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
                 action="Profile Saved",
                 details=st.session_state.user_data
             )
+     # --- Bottom buttons ---
+    col1, col2 = st.columns(2)
+    if col1.button("Unsupervised Recommendation"):
+        if st.session_state.user_data and st.session_state.user_data.get("skills"):
+            st.session_state.page = 'unsupervised'
+            st.experimental_rerun()
+        else:
+            st.warning("Please fill your profile in the form before proceeding.")
+
+    if col2.button("Rule-Based Recommendation"):
+        if st.session_state.user_data and st.session_state.user_data.get("skills"):
+            st.session_state.page = 'rule_based'
+            st.experimental_rerun()
+        else:
+            st.warning("Please fill your profile in the form before proceeding.")
 
 elif st.session_state.page == 'rule_based' and st.session_state.authenticated:
     st.title("📋 Rule-Based Job Recommendation")
