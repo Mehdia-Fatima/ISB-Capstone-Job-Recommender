@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+import csv
 import uuid
 import requests
 import numpy as np
@@ -68,6 +69,26 @@ def run_tuned_clustering(job_pca: np.ndarray):
             results.append((name, sil, db, labels))
     best = max(results, key=lambda x: x[1])
     return best[0], best[3]
+
+def log_interaction(user_id: str, action: str, details: dict):
+    """
+    Append interaction data to CSV file.
+    :param user_id: Unique user/session id
+    :param action: Description of user action (e.g., "Login Attempt", "OTP Verified", "Run Recommendation")
+    :param details: Dict of additional relevant info (can be empty)
+    """
+    filepath = INTERACTION_LOG
+    file_exists = os.path.isfile(filepath)
+    with open(filepath, mode='a', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=['timestamp', 'user_id', 'action', 'details'])
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow({
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'user_id': user_id,
+            'action': action,
+            'details': str(details)
+        })
 
 # Load static data
 jobs_df = pd.read_csv("jobs.csv")
@@ -167,7 +188,12 @@ if st.session_state.page == 'login':
             st.session_state.generated_otp = "123456"
             st.session_state.user_data["name"] = name.strip()
             st.success("OTP sent! Use 123456 for demo.")
-
+            # Log OTP send event
+            log_interaction(
+            user_id=st.session_state.session_id if 'session_id' in st.session_state else 'unknown',
+            action="Send OTP",
+            details={"phone": phone, "name": name}
+        )
 
     if st.session_state.generated_otp:
         otp = st.text_input("Enter OTP", key="otp_input")
@@ -182,8 +208,20 @@ if st.session_state.page == 'login':
                 st.session_state.page           = 'main'
                 st.session_state.login_trigger += 1
                 st.rerun()
+                # Log successful OTP verification
+                log_interaction(
+                    user_id=st.session_state.session_id,
+                    action="OTP Verified",
+                    details={"otp_entered": otp, "status": "success"}
+                )
             else:
                 st.error("Incorrect OTP")
+                # Log failed OTP verification
+                log_interaction(
+                    user_id=st.session_state.session_id if 'session_id' in st.session_state else 'unknown',
+                    action="OTP Verified",
+                    details={"otp_entered": otp, "status": "failure"}
+                )
 
     st.markdown("---")
     st.subheader("Admin Access")
@@ -198,7 +236,7 @@ if st.session_state.page == 'login':
             st.success("Admin access granted.")
             st.rerun()
         else:
-            st.error("Access denied. Use a valid @innodatatics.com email.")
+            st.error("Access denied. Use a valid email.")
 
 # --- PAGE: MAIN APP ---
 elif st.session_state.page == 'main' and st.session_state.authenticated:
@@ -206,6 +244,11 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
 
     col1, col2, col3, col4 = st.columns([1,1,1,1])
     if col1.button("Logout"):
+        log_interaction(
+        user_id=st.session_state.session_id if 'session_id' in st.session_state else 'unknown',
+        action="Logout",
+        details={}
+        )
         for k in ['authenticated','generated_otp','recommendations','user_data']:
             st.session_state[k] = False if isinstance(st.session_state[k], bool) else {}
         st.session_state['messages']   = []
@@ -255,6 +298,12 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
             st.success("Profile saved! Now you can proceed to recommendations.")
+            # Log profile saved event
+            log_interaction(
+                user_id=st.session_state.session_id,
+                action="Profile Saved",
+                details=st.session_state.user_data
+            )
 
 elif st.session_state.page == 'rule_based' and st.session_state.authenticated:
     st.title("📋 Rule-Based Job Recommendation")
@@ -284,6 +333,19 @@ elif st.session_state.page == 'rule_based' and st.session_state.authenticated:
                 top_n=top_n
             )
             st.session_state.recommendations = recs
+            # Log recommendation request
+            log_interaction(
+                user_id=st.session_state.session_id,
+                action="Run Rule-Based Recommendation",
+                details={
+                    "user_name": w_nm,
+                    "user_age": st.session_state.user_data.get("age", 30),
+                    "user_location": w_city,
+                    "user_skills": w_skill,
+                    "expected_salary": w_sal,
+                    "top_n": top_n,
+                    "recommendation_count": len(recs) if recs is not None else 0}
+                    )
 
     # Display recommendations if available
     recs = st.session_state.get('recommendations')
@@ -296,6 +358,11 @@ elif st.session_state.page == 'rule_based' and st.session_state.authenticated:
                     st.write(f"**Match score:** {row['match_score']}")
                     if st.button(f"Interested in {row['Company']}", key=f"int_rule_{idx}"):
                         st.success("Your interest has been logged!")
+                        log_interaction(
+                            user_id=st.session_state.session_id,
+                            action="Job Interest Clicked",
+                            details={"company": row["Company"], "job_type": row["Job type"], "state": row["State"]}
+                        )
         else:
             st.warning("No jobs found matching your profile.")
 
