@@ -414,8 +414,16 @@ elif st.session_state.page == 'chatbot':
             st.markdown(prompt)
 
         # Generate assistant reply
-        reply = run_flow(prompt, st.session_state.session_id,
-                         st.session_state.user_data.get("name", ""))
+        # reply = run_flow(prompt, st.session_state.session_id,
+        #                  st.session_state.user_data.get("name", ""))
+        reply = run_flow(
+            user_message=prompt,
+            session_id=st.session_state.session_id,
+            user_name=st.session_state.user_data.get("name", ""),
+            tweaks={
+                "ChatHistory-XYZ123": {"input_value": history_str}
+            }
+        )
 
         # Show assistant reply
         with st.chat_message("assistant"):
