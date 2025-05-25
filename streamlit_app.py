@@ -388,11 +388,25 @@ elif st.session_state.page == 'chatbot':
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
     if prompt := st.chat_input("Type your message…"):
+        # Handle new prompt
+        if prompt := st.chat_input("Type your message…"):
+            # Log user input
+            log_interaction(
+                user_id=st.session_state.session_id,
+                action="Chatbot User Prompt",
+                details={"prompt": prompt}
+            )
         st.session_state.messages.append({"role":"user","content":prompt})
         with st.chat_message("assistant"):
             reply = run_flow(prompt, st.session_state.session_id,
                              st.session_state.user_data.get("name",""))
             st.markdown(reply)
+            # Log assistant reply
+            log_interaction(
+                user_id=st.session_state.session_id,
+                action="Chatbot Assistant Reply",
+                details={"reply": reply}
+            )
             st.session_state.messages.append({"role":"assistant","content":reply})
 
 # --- PAGE: UNSUPERVISED ---
