@@ -320,6 +320,10 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
 elif st.session_state.page == 'rule_based' and st.session_state.authenticated:
     st.title("📋 Rule-Based Job Recommendation")
 
+    if st.button("🔙 Back"):
+        st.session_state.page = 'main'
+        st.rerun()
+
     # Sidebar for worker profile
     st.sidebar.header("Worker Profile")
     w_nm = st.sidebar.text_input("Name", st.session_state.user_data.get("name", "John Doe"))
