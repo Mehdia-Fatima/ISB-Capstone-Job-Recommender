@@ -264,11 +264,11 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
 
     with st.form("user_form"):
         name         = st.text_input("Name", value=st.session_state.user_data.get("name",""))
-        age          = st.number_input("Age", 18, 90, 30)
+        age          = st.number_input("Age", 18, 90, value=st.session_state.user_data.get("age", 30))
         location     = st.selectbox("Location (State)", indian_states, index=indian_states.index(st.session_state.user_data.get("location", indian_states[0])))
         skills       = st.multiselect("Skills (Job Types)", available_skills, default=st.session_state.user_data.get("skills", "").split(", ") if st.session_state.user_data.get("skills") else [])
-        salary       = st.number_input("Expected Monthly Salary (INR)", min_value=0)
-        top_n        = st.slider("Number of Recommendations", 1, 20, 3)
+        salary       = st.number_input("Expected Monthly Salary (INR)", min_value=0, value=st.session_state.user_data.get("salary", 0))
+        top_n        = st.slider("Number of Recommendations", 1, 20, value=st.session_state.user_data.get("top_n", 3))
         submitted    = st.form_submit_button("Save Profile")
 
     if submitted:
