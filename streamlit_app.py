@@ -385,33 +385,46 @@ elif st.session_state.page == 'rule_based' and st.session_state.authenticated:
 # --- PAGE: CHATBOT ---
 elif st.session_state.page == 'chatbot':
     st.title("💬 InnoDatatics Chat")
+
     if st.button("🔙 Back to Recommender"):
         st.session_state.page = 'main'
         st.rerun()
+
+    # Display past messages
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
-    if prompt := st.chat_input("Type your message…"):
-        # Handle new prompt
-        if prompt := st.chat_input("Type your message…"):
-            # Log user input
-            log_interaction(
-                user_id=st.session_state.session_id,
-                action="Chatbot User Prompt",
-                details={"prompt": prompt}
-            )
-        st.session_state.messages.append({"role":"user","content":prompt})
+
+    # Get new user message
+    prompt = st.chat_input("Type your message…")
+    if prompt:
+        # Log user input
+        log_interaction(
+            user_id=st.session_state.session_id,
+            action="Chatbot User Prompt",
+            details={"prompt": prompt}
+        )
+
+        # Show user message
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Generate assistant reply
+        reply = run_flow(prompt, st.session_state.session_id,
+                         st.session_state.user_data.get("name", ""))
+
+        # Show assistant reply
         with st.chat_message("assistant"):
-            reply = run_flow(prompt, st.session_state.session_id,
-                             st.session_state.user_data.get("name",""))
             st.markdown(reply)
-            # Log assistant reply
-            log_interaction(
-                user_id=st.session_state.session_id,
-                action="Chatbot Assistant Reply",
-                details={"reply": reply}
-            )
-            st.session_state.messages.append({"role":"assistant","content":reply})
+        st.session_state.messages.append({"role": "assistant", "content": reply})
+
+        # Log assistant reply
+        log_interaction(
+            user_id=st.session_state.session_id,
+            action="Chatbot Assistant Reply",
+            details={"reply": reply}
+        )
 
 # --- PAGE: UNSUPERVISED ---
 
