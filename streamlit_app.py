@@ -154,11 +154,20 @@ if st.session_state.page == 'login':
     phone = st.text_input("Phone")
     name  = st.text_input("Name")
 
-    can_send = phone.isdigit() and len(phone)==10 and name.strip()
-    if st.button("Send OTP", disabled=not can_send):
-        st.session_state.generated_otp = "123456"
-        st.session_state.user_data["name"] = name.strip()
-        st.success("OTP sent! Use 123456 for demo.")
+    phone_valid = phone.isdigit() and len(phone) == 10
+    name_valid  = bool(name.strip())
+    can_send    = phone_valid and name_valid
+
+    if st.button("Send OTP"):
+        if not phone_valid:
+            st.error("Please enter a valid 10-digit phone number.")
+        elif not name_valid:
+            st.error("Name cannot be empty.")
+        else:
+            st.session_state.generated_otp = "123456"
+            st.session_state.user_data["name"] = name.strip()
+            st.success("OTP sent! Use 123456 for demo.")
+
 
     if st.session_state.generated_otp:
         otp = st.text_input("Enter OTP", key="otp_input")
