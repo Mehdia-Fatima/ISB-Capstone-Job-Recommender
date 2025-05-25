@@ -406,13 +406,14 @@ elif st.session_state.page == 'unsupervised':
     st.title("🤖 Unsupervised Job Recommendation")
     if st.button("🔙 Back"):
         st.session_state.page = 'main'; st.rerun()
- 
+
+    # Sidebar for worker profile
     st.sidebar.header("Worker Profile")
-    w_nm = st.sidebar.text_input("Name", "John Doe")
-    w_city = st.sidebar.text_input("City", "Mumbai")
-    w_skill = st.sidebar.text_input("Skills (comma-separated)", "Plumber")
-    w_sal = st.sidebar.number_input("Monthly Wage (₹)", 0, value=30000)
-    top_n = st.sidebar.slider("Top N", 1, 20, 5)
+    w_nm = st.sidebar.text_input("Name", st.session_state.user_data.get("name", "John Doe"))
+    w_city = st.sidebar.text_input("City", st.session_state.user_data.get("location", "Mumbai"))
+    w_skill = st.sidebar.text_input("Skills (comma-separated)", st.session_state.user_data.get("skills", "Plumber"))
+    w_sal = st.sidebar.number_input("Monthly Wage (₹)", 0, value=int(st.session_state.user_data.get("salary", 30000)))
+    top_n = st.sidebar.slider("Top N", 1, 20, st.session_state.user_data.get("top_n", 5))
     run_btn = st.sidebar.button("Run Unsupervised")
  
     if run_btn:
