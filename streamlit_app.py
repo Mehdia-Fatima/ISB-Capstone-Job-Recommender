@@ -38,7 +38,7 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 # --- Constants ---
 INTERACTION_LOG   = "/tmp/user_interactions.csv"
 BASE_API_URL      = "http://52.205.254.228:7860"
-FLOW_ID           = "innodataticsrag"
+FLOW_ID           = "8c7a4a06-925e-4287-9e0d-734cbba14577"
 GEOCODE_API_KEY   = "e16212d2c51a4da288bf22c3dced407d"
 CACHE_FILE        = Path("location_cache.csv")
 PCA_COMPONENTS    = 50
@@ -122,7 +122,7 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = []
 # --- LangFlow Chatbot Helper ---
 def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
-    api_url = f"{BASE_API_URL}/api/v1/run/{FLOW_ID}"
+    api_url = f"{http://52.205.254.228:7860}/api/v1/run/{8c7a4a06-925e-4287-9e0d-734cbba14577}"
     payload = {
         "session_id": session_id,
         "input_value": user_message,
