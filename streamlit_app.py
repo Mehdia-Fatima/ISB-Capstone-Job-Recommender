@@ -131,7 +131,8 @@ def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
     }
     payload["tweaks"].update({
         "ChatInput-aAzUo": {"session_id": session_id},
-        "TextInput-LnzCN": {"input_value": user_name},
+        # "TextInput-LnzCN": {"input_value": user_name},
+        "TextInput-ujdax": {"input_value": session_id}
         "Memory-YVR39": {"session_id": session_id},
         "ChatOutput-8QykV": {"session_id": session_id}
     })
