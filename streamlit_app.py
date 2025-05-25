@@ -484,25 +484,36 @@ elif st.session_state.page == 'unsupervised':
         df_uns['sim'] = sims
         subset = df_uns[df_uns['cluster'] == worker_cl]
         top_jobs = subset.nlargest(top_n, 'sim')
+
+        # Initialize session state to track interests if not present
+        if "interested_unsup" not in st.session_state:
+            st.session_state.interested_unsup = set()
+
         st.subheader(f"Top {top_n} jobs in cluster {worker_cl}")
         for idx, row in top_jobs.iterrows():
             with st.expander(f"📌 {row['Company']}"):
                 st.write(f"**Job type:** {row['Job type']}")
                 st.write(f"**State:** {row['State']}")
                 st.write(f"**Similarity score:** {row['sim']:.2f}")
+                
+                job_key = f"{row['Company']}_{row['Job type']}_{row['State']}"
     
-                if st.button(f"Interested in {row['Company']}", key=f"int_unsup_{idx}"):
-                    st.success("Your interest has been logged!")
-                    log_interaction(
-                        user_id=st.session_state.session_id,
-                        action="Job Interest Clicked (Unsupervised)",
-                        details={
-                            "company": row["Company"],
-                            "job_type": row["Job type"],
-                            "state": row["State"],
-                            "similarity_score": row["sim"]
-                        }
-                    )
+                if job_key not in st.session_state.interested_unsup:
+                    if st.button(f"Interested in {row['Company']}", key=f"int_unsup_{idx}"):
+                        st.session_state.interested_unsup.add(job_key)
+                        st.success("Your interest has been logged!")
+                        log_interaction(
+                            user_id=st.session_state.session_id,
+                            action="Job Interest Clicked (Unsupervised)",
+                            details={
+                                "company": row["Company"],
+                                "job_type": row["Job type"],
+                                "state": row["State"],
+                                "similarity_score": row["sim"]
+                            }
+                        )
+                else:
+                    st.info("✅ Interest already logged.")
 
 # --- PAGE: ADMIN VIEW ---
 elif st.session_state.page == 'admin_view' and st.session_state.authenticated:
