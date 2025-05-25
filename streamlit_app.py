@@ -187,6 +187,7 @@ if st.session_state.page == 'login':
         else:
             st.session_state.generated_otp = "123456"
             st.session_state.user_data["name"] = name.strip()
+            st.session_state.user_data["phone"] = phone 
             st.success("OTP sent! Use 123456 for demo.")
             # Log OTP send event
             log_interaction(
@@ -201,7 +202,8 @@ if st.session_state.page == 'login':
             if otp == st.session_state.generated_otp:
                 # Clear previous chat
                 st.session_state['messages']   = []
-                st.session_state['session_id'] = str(uuid.uuid4())
+                # st.session_state['session_id'] = str(uuid.uuid4())
+                st.session_state["session_id"] = st.session_state.user_data["phone"] 
 
                 st.session_state.authenticated  = True
                 st.session_state.user_role      = 'user'
