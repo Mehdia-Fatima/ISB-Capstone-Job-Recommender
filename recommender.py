@@ -37,22 +37,23 @@ def get_coordinates(location):
         return get_coordinates(location)
         
 # Precompute coordinates for unique locations
-unique_locations = set(jobs_df['State'].unique()).union(set(['Your User Location']))  # Include user location here
 location_coords = {}
 
-# Populate the location_coords dictionary with coordinates for each location
-for loc in unique_locations:
-    location_coords[loc] = get_coordinates(loc)
+def get_location_coords(location):
+    if location not in location_coords:
+        coords = get_coordinates(location)
+        location_coords[location] = coords
+    return location_coords[location]
 
 def calculate_location_proximity(emp_location, job_location):
-    emp_coords = location_coords.get(emp_location)
-    job_coords = location_coords.get(job_location)
+    emp_coords = get_location_coords(emp_location)
+    job_coords = get_location_coords(job_location)
     
     if not emp_coords or not job_coords:
         return 0
-    
+
     distance = geodesic(emp_coords, job_coords).kilometers
-    max_distance = 500  # Threshold for normalization
+    max_distance = 500  # Normalization threshold
     proximity_score = 1 - (distance / max_distance)
     return max(proximity_score, 0)
 
