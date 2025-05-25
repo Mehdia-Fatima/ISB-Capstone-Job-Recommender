@@ -294,6 +294,13 @@ elif st.session_state.page == 'main' and st.session_state.authenticated:
                 action="Profile Saved",
                 details=st.session_state.user_data
             )
+            
+    # Check if profile is saved with skills (enable buttons only then)
+    profile_ready = (
+        st.session_state.get("user_data")
+        and st.session_state.user_data.get("skills")
+        and len(st.session_state.user_data.get("skills")) > 0
+    )
      # --- Bottom buttons ---
     col1, col2 = st.columns(2)
     if col1.button("Unsupervised Recommendation"):
