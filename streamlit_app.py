@@ -122,20 +122,34 @@ for key, default in {
 # --- LangFlow Chatbot Helper ---
 def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
     api_url = f"{BASE_API_URL}/api/v1/run/{FLOW_ID}"
+    # payload = {
+    #     "session_id": session_id,
+    #     "input_value": user_message,
+    #     "input_type": "chat",
+    #     "output_type": "chat",
+    #     "tweaks": tweaks or {}
+    # }
+    # payload["tweaks"].update({
+    #     "ChatInput-aAzUo": {"session_id": session_id},
+    #     # "TextInput-LnzCN": {"input_value": user_name},
+    #     "TextInput-ujdax": {"input_value": session_id},
+    #     "Memory-YVR39": {"session_id": session_id},
+    #     "ChatOutput-8QykV": {"session_id": session_id}
+    # })
+    default_tweaks = {
+        "ChatInput-aAzUo":  {"session_id": session_id},
+       # "TextInput-LnzCN": {"input_value": user_name},  # drop if unused
+        "TextInput-ujdax":  {"input_value": session_id},
+        "Memory-YVR39":     {"session_id": session_id},
+        "ChatOutput-8QykV": {"session_id": session_id},
+   }
     payload = {
-        "session_id": session_id,
+        "session_id":  session_id,
         "input_value": user_message,
-        "input_type": "chat",
+        "input_type":  "chat",
         "output_type": "chat",
-        "tweaks": tweaks or {}
-    }
-    payload["tweaks"].update({
-        "ChatInput-aAzUo": {"session_id": session_id},
-        # "TextInput-LnzCN": {"input_value": user_name},
-        "TextInput-ujdax": {"input_value": session_id}
-        "Memory-YVR39": {"session_id": session_id},
-        "ChatOutput-8QykV": {"session_id": session_id}
-    })
+        "tweaks":      all_tweaks
+   }
     headers = {"x-api-key": api_key} if api_key else {}
     response = requests.post(api_url, json=payload, headers=headers)
     response.raise_for_status()
