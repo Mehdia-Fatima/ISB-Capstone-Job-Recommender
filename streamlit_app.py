@@ -122,7 +122,7 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = []
 # --- LangFlow Chatbot Helper ---
 def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
-    api_url = f"{http://52.205.254.228:7860}/api/v1/run/{FLOW_ID}"
+    api_url = f"{BASE_API_URL}/api/v1/run/{FLOW_ID}"
     payload = {
         "session_id": session_id,
         "input_value": user_message,
