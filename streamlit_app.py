@@ -414,9 +414,9 @@ elif st.session_state.page == 'chatbot':
         )
 
         # Show user message
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        # st.session_state.messages.append({"role": "user", "content": prompt})
+        # with st.chat_message("user"):
+        #     st.markdown(prompt)
         
 
         # Generate assistant reply
