@@ -405,6 +405,7 @@ elif st.session_state.page == 'chatbot':
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
+            st.empty() 
         # Log user input
         log_interaction(
             user_id=st.session_state.session_id,
@@ -416,6 +417,7 @@ elif st.session_state.page == 'chatbot':
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
+            st.empty() 
 
         # Generate assistant reply
         reply = run_flow(
