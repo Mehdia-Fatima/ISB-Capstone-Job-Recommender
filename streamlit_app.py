@@ -435,8 +435,8 @@ elif st.session_state.page == 'chatbot':
     prompt = st.chat_input("Type your message…")
     if prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
-        # with st.chat_message("user"):
-        #     st.markdown(prompt)
+        with st.chat_message("user"):
+            st.markdown(prompt)
       
         # Log user input
         log_interaction(
@@ -461,7 +461,9 @@ elif st.session_state.page == 'chatbot':
         # Show assistant reply
         # with st.chat_message("assistant"):
         #     st.markdown(reply)
-        # st.session_state.messages.append({"role": "assistant", "content": reply})
+        st.session_state.messages.append({"role": "assistant", "content": reply})
+        with st.chat_message("assistant"):
+        st.markdown(reply)
 
 
         # Log assistant reply
