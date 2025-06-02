@@ -37,7 +37,7 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # --- Constants ---
 INTERACTION_LOG   = "/tmp/user_interactions.csv"
-BASE_API_URL      = "http://3.91.179.86:7860"
+BASE_API_URL      = "http://44.211.129.99:7860"
 FLOW_ID           = "6fdd59ed-0109-491b-8576-3bf4932add58"
 GEOCODE_API_KEY   = "e16212d2c51a4da288bf22c3dced407d"
 CACHE_FILE        = Path("location_cache.csv")
