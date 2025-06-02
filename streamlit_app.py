@@ -121,6 +121,38 @@ for key, default in {
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
+# def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
+    # api_url = f"{BASE_API_URL}/api/v1/run/{FLOW_ID}"
+    # payload = {
+    #     "session_id": session_id,
+    #     "input_value": user_message,
+    #     "input_type": "chat",
+    #     "output_type": "chat",
+    #     "tweaks": {
+    #         "ChatInput-aAzUo": {"session_id": session_id},
+    #         "TextInput-ujdax": {"input_value": user_message},
+    #         "Memory-YVR39": {"session_id": session_id},
+    #         "ChatOutput-8QykV": {"session_id": session_id},
+    #     }
+    # }
+    # headers = {
+    #     "Content-Type": "application/json",
+    # }
+    # if api_key:
+    #     headers["x-api-key"] = api_key
+
+    # try:
+    #     response = requests.post(api_url, json=payload, headers=headers)
+    #     response.raise_for_status()
+    #     return response.json()["outputs"][0]["outputs"][0]["results"]["message"]["text"]
+    # except requests.exceptions.HTTPError as http_err:
+    #     print(f"HTTP error occurred: {http_err}")
+    #     print(f"Response content: {response.text}")
+    #     raise
+    # except Exception as err:
+    #     print(f"An error occurred: {err}")
+    #     raise
+# --- LangFlow Chatbot Helper ---
 def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
     api_url = f"{BASE_API_URL}/api/v1/run/{FLOW_ID}"
     payload = {
@@ -135,24 +167,10 @@ def run_flow(user_message, session_id, user_name, tweaks=None, api_key=None):
             "ChatOutput-8QykV": {"session_id": session_id},
         }
     }
-    headers = {
-        "Content-Type": "application/json",
-    }
-    if api_key:
-        headers["x-api-key"] = api_key
-
-    try:
-        response = requests.post(api_url, json=payload, headers=headers)
-        response.raise_for_status()
-        return response.json()["outputs"][0]["outputs"][0]["results"]["message"]["text"]
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-        print(f"Response content: {response.text}")
-        raise
-    except Exception as err:
-        print(f"An error occurred: {err}")
-        raise
-
+    headers = {"x-api-key": api_key} if api_key else {}
+    response = requests.post(api_url, json=payload, headers=headers)
+    response.raise_for_status()
+    return response.json()["outputs"][0]["outputs"][0]["results"]["message"]["text"]
 
 # --- Geocoding & Embedding Helpers ---
 @st.cache_resource
